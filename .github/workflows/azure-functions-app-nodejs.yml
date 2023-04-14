@@ -1,42 +1,36 @@
-name: Deploy Node.js project to Azure Function App
+name: Deploy Node.js project to function app
 
 on:
-  push:
-    branches:
-    - master
+  [push]
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'nodejscicdtigger'   # set this to your function app name on Azure
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'       # set this to the path to your function app project, defaults to the repository root
-  NODE_VERSION: '18.x'                      # set this to the node version to use (e.g. '8.x', '10.x', '12.x')
+  AZURE_FUNCTIONAPP_NAME: nodejscicdtigger    # set this to your application's name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  NODE_VERSION: '18.x'                     # set this to the node version to use (supports 8.x, 10.x, 12.x, 14.x)
 
 jobs:
   build-and-deploy:
-    runs-on: Linux # For Linux, use ubuntu-latest
-    environment: dev
+    runs-on: windows-latest
     steps:
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
-
+    - name: 'Checkout GitHub action'
+      uses: actions/checkout@v2
 
     - name: Setup Node ${{ env.NODE_VERSION }} Environment
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
 
     - name: 'Resolve Project Dependencies Using Npm'
-      shell: bash # For Linux, use bash
+      shell: pwsh
       run: |
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         npm install
         npm run build --if-present
         npm run test --if-present
         popd
-
-    - name: 'Run Azure Functions Action'
+    - name: 'Run Azure Functions action'
       uses: Azure/functions-action@v1
-      id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} # Remove publish-profile to use Azure RBAC
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
